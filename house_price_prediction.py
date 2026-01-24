@@ -10,6 +10,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LinearRegression, Ridge, Lasso
 from sklearn.metrics import root_mean_squared_error, mean_absolute_error
 import matplotlib.pyplot as plt
+import pandas as pd
 
 # =========================
 # Load Data
@@ -19,7 +20,7 @@ df = data.frame
 
 X = df.drop("MedHouseVal", axis=1)
 y = df["MedHouseVal"]
-
+print(X.columns.tolist())
 
 # =========================
 # Train / Validation / Test Split
@@ -183,6 +184,19 @@ print("\nSelected Model:", best_model_name)
 print(f"Test RMSE: {test_rmse:.4f}")
 print(f"Test MAE: {test_mae:.4f}")
 
+train_preds=final_model.predict(X_train)
+train_preds_rmse=root_mean_squared_error(y_train,train_preds)
+train_preds_mae=mean_absolute_error(y_train,train_preds)
+
+valid_preds=final_model.predict(X_valid)
+valid_preds_rmse=root_mean_squared_error(y_valid,valid_preds)
+valid_preds_mae=mean_absolute_error(y_valid,valid_preds)
+
+print("Train RMSE:", train_preds_rmse)
+print("Validation RMSE:", valid_preds_rmse)
+print("Train MAE:", train_preds_mae)
+print("Validation MAE:", valid_preds_mae)
+
 #Actual vs Predicted Plot
 plt.figure(figsize=(10,10))
 plt.scatter(y_test,test_preds)
@@ -204,3 +218,13 @@ plt.title("Residual Value Histogram")
 plt.grid(True)
 plt.legend()
 plt.show()
+
+feature_names=final_model.named_steps["preprocessor"].get_feature_names_out()
+coefficients=final_model.named_steps["model"].coef_
+coef_df=pd.DataFrame({
+    "feature":feature_names,
+    "coefficient":coefficients
+})
+coef_df['coefficient']=coef_df["coefficient"].abs()
+coef_df=coef_df.sort_values(by='coefficient',ascending=False)
+print(coef_df)
